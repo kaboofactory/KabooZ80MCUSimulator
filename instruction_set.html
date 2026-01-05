@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KabooZ80 Simulator Instruction Set Reference</title>
+    <style>
+        body {
+            font-family: 'Consolas', 'Monaco', monospace;
+            padding: 20px;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            font-size: 13px;
+        }
+
+        h1 {
+            color: #569cd6;
+            border-bottom: 1px solid #444;
+            padding-bottom: 10px;
+        }
+
+        .intro {
+            margin-bottom: 10px;
+            color: #aaa;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .legend {
+            background: #252526;
+            padding: 10px;
+            border: 1px solid #444;
+            margin-bottom: 20px;
+            font-family: 'Segoe UI', sans-serif;
+            display: inline-block;
+        }
+
+        .legend h3 {
+            margin: 0 0 5px 0;
+            color: #dcdcaa;
+            font-size: 14px;
+        }
+
+        .legend ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            column-count: 3;
+            column-gap: 20px;
+        }
+
+        .legend li {
+            margin-bottom: 2px;
+            font-size: 12px;
+        }
+
+        .legend p {
+            margin: 5px 0 0 0;
+            font-size: 11px;
+            color: #888;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            table-layout: fixed;
+        }
+
+        th,
+        td {
+            border: 1px solid #333;
+            padding: 6px 8px;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background: #252526;
+            color: #dcdcaa;
+            position: sticky;
+            top: 0;
+        }
+
+        tr:nth-child(even) {
+            background: #262626;
+        }
+
+        tr:hover {
+            background: #333;
+        }
+
+        code {
+            color: #9cdcfe;
+            font-weight: bold;
+        }
+
+        .op {
+            font-family: 'Segoe UI', sans-serif;
+            color: #ce9178;
+        }
+
+        .flags {
+            font-family: monospace;
+            white-space: pre;
+            text-align: center;
+            width: 100px;
+        }
+
+        .len {
+            text-align: center;
+            width: 40px;
+        }
+
+        .desc-en {
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .desc-ja {
+            color: #808080;
+            font-size: 0.9em;
+            display: block;
+        }
+
+        .example {
+            color: #6a9955;
+            font-size: 0.85em;
+            display: block;
+            margin-top: 2px;
+        }
+
+        /* Flag Colors */
+        .f-aff {
+            color: #bbd7ff;
+            font-weight: bold;
+        }
+
+        .f-0 {
+            color: #ce9178;
+        }
+
+        .f-1 {
+            color: #ce9178;
+        }
+
+        .f-dash {
+            color: #555;
+        }
+
+        /* Column Widths */
+        th:nth-child(1) {
+            width: 25%;
+        }
+
+        th:nth-child(2) {
+            width: 5%;
+        }
+
+        th:nth-child(3) {
+            width: 10%;
+        }
+
+        th:nth-child(4) {
+            width: 60%;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Simulator Instruction Set Reference</h1>
+    <div class="intro">
+        Strict reference of supported instructions and their behavior in this specific simulator implementation.
+        (Self-reported by the generating AI)
+        <br>
+        <span class="ja">本シミュレータの実装に基づく厳密な命令セットリファレンスです。全てのバリエーションを網羅しています。(生成AIの自己申告)</span>
+    </div>
+
+    <div class="legend">
+        <h3>Flags Legend</h3>
+        <ul>
+            <li><span class="f-aff">*</span> : Affected (変化)</li>
+            <li><span class="f-dash">-</span> : Unchanged (変化なし)</li>
+            <li><span class="f-0">0</span> : Cleared to 0 (0にリセット)</li>
+            <li><span class="f-1">1</span> : Set to 1 (1にセット)</li>
+            <li><span class="f-aff">P</span> : Parity (パリティ)</li>
+            <li><span class="f-aff">V</span> : Overflow (オーバーフロー)</li>
+        </ul>
+        <p><strong>Flag Order in Table:</strong> S Z H P/V N C (Sign, Zero, Half Carry, Parity/Overflow, Add/Sub, Carry)
+        </p>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Mnemonic</th>
+                <th>Len</th>
+                <th>Flags<br>S Z H P N C</th>
+                <th>Operation & Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- 8-BIT LOAD -->
+            <tr>
+                <td colspan="4" style="background:#0e639c; color:white; font-family:'Segoe UI'">8-BIT LOAD GROUP</td>
+            </tr>
+
+            <tr>
+                <td><code>LD r, r'</code></td>
+                <td class="len">1</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">r = r'</span><span class="desc-ja">レジスタ間転送。(r, r' = A, B, C, D, E, H,
+                        L)</span></td>
+            </tr>
+            <tr>
+                <td><code>LD r, n</code></td>
+                <td class="len">2</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">r = n</span><span class="desc-ja">8ビット即値をレジスタへ転送。</span></td>
+            </tr>
+            <tr>
+                <td><code>LD r, (HL)</code></td>
+                <td class="len">1</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">r = (HL)</span><span class="desc-ja">HL参照メモリロード。</span></td>
+            </tr>
+            <tr>
+                <td><code>LD r, (IX+d)</code></td>
+                <td class="len">3</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">r = (IX + d)</span><span class="desc-ja">IXインデックスメモリロード。</span></td>
+            </tr>
+            <tr>
+                <td><code>LD r, (IY+d)</code></td>
+                <td class="len">3</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">r = (IY + d)</span><span class="desc-ja">IYインデックスメモリロード。</span></td>
+            </tr>
+            <tr>
+                <td><code>LD (HL), r</code></td>
+                <td class="len">1</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">(HL) = r</span><span class="desc-ja">HL参照メモリへ書き込み。</span></td>
+            </tr>
+            <tr>
+                <td><code>LD (HL), n</code></td>
+                <td class="len">2</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">(HL) = n</span><span class="desc-ja">HL参照メモリへ即値書き込み。</span></td>
+            </tr>
+            <tr>
+                <td><code>LD (IX+d), r</code></td>
+                <td class="len">3</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">(IX + d) = r</span><span class="desc-ja">IXインデックスメモリへ書き込み。</span></td>
+            </tr>
+            <tr>
+                <td><code>LD (IY+d), r</code></td>
+                <td class="len">3</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">(IY + d) = r</span><span class="desc-ja">IYインデックスメモリへ書き込み。</span></td>
+            </tr>
+            <tr>
+                <td><code>LD (IX+d), n</code></td>
+                <td class="len">4</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">(IX + d) = n</span><span class="desc-ja">IXインデックスメモリへ即値書き込み。</span></td>
+            </tr>
+            <tr>
+                <td><code>LD (IY+d), n</code></td>
+                <td class="len">4</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">(IY + d) = n</span><span class="desc-ja">IYインデックスメモリへ即値書き込み。</span></td>
+            </tr>
+            <tr>
+                <td><code>LD A, (BC)</code></td>
+                <td class="len">1</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">A = (BC)</span><span class="desc-ja">BC参照ロード。</span></td>
+            </tr>
+            <tr>
+                <td><code>LD A, (DE)</code></td>
+                <td class="len">1</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">A = (DE)</span><span class="desc-ja">DE参照ロード。</span></td>
+            </tr>
+            <tr>
+                <td><code>LD A, (nn)</code></td>
+                <td class="len">3</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">A = (nn)</span><span class="desc-ja">絶対アドレスロード。</span></td>
+            </tr>
+            <tr>
+                <td><code>LD (BC), A</code></td>
+                <td class="len">1</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">(BC) = A</span><span class="desc-ja">BC参照ストア。</span></td>
+            </tr>
+            <tr>
+                <td><code>LD (DE), A</code></td>
+                <td class="len">1</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">(DE) = A</span><span class="desc-ja">DE参照ストア。</span></td>
+            </tr>
+            <tr>
+                <td><code>LD (nn), A</code></td>
+                <td class="len">3</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">(nn) = A</span><span class="desc-ja">絶対アドレスストア。</span></td>
+            </tr>
+
+            <!-- 16-BIT LOAD -->
+            <tr>
+                <td colspan="4" style="background:#0e639c; color:white; font-family:'Segoe UI'">16-BIT LOAD GROUP</td>
+            </tr>
+
+            <tr>
+                <td><code>LD dd, nn</code></td>
+                <td class="len">3</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">dd = nn</span><span class="desc-ja">16ビット即値ロード。(dd = BC, DE, HL, SP)</span>
+                </td>
+            </tr>
+            <tr>
+                <td><code>LD IX, nn</code></td>
+                <td class="len">4</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">IX = nn</span><span class="desc-ja">IX 16ビット即値ロード。</span></td>
+            </tr>
+            <tr>
+                <td><code>LD IY, nn</code></td>
+                <td class="len">4</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">IY = nn</span><span class="desc-ja">IY 16ビット即値ロード。</span></td>
+            </tr>
+            <tr>
+                <td><code>LD HL, (nn)</code></td>
+                <td class="len">3</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">HL = (nn)</span><span class="desc-ja">16ビット絶対アドレス参照ロード。</span></td>
+            </tr>
+            <tr>
+                <td><code>LD dd, (nn)</code></td>
+                <td class="len">4</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">dd = (nn)</span><span class="desc-ja">ED命令。BC, DE, HL, SP対応。</span></td>
+            </tr>
+            <tr>
+                <td><code>LD IX, (nn)</code></td>
+                <td class="len">4</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">IX = (nn)</span><span class="desc-ja">IX 16ビット絶対アドレス参照ロード。</span></td>
+            </tr>
+            <tr>
+                <td><code>LD IY, (nn)</code></td>
+                <td class="len">4</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">IY = (nn)</span><span class="desc-ja">IY 16ビット絶対アドレス参照ロード。</span></td>
+            </tr>
+            <tr>
+                <td><code>LD (nn), HL</code></td>
+                <td class="len">3</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">(nn) = HL</span><span class="desc-ja">HL 16ビット絶対アドレス保存。</span></td>
+            </tr>
+            <tr>
+                <td><code>LD (nn), dd</code></td>
+                <td class="len">4</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">(nn) = dd</span><span class="desc-ja">ED命令。BC, DE, HL, SP保存。</span></td>
+            </tr>
+            <tr>
+                <td><code>LD (nn), IX</code></td>
+                <td class="len">4</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">(nn) = IX</span><span class="desc-ja">IX 16ビット絶対アドレス保存。</span></td>
+            </tr>
+            <tr>
+                <td><code>LD (nn), IY</code></td>
+                <td class="len">4</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">(nn) = IY</span><span class="desc-ja">IY 16ビット絶対アドレス保存。</span></td>
+            </tr>
+            <tr>
+                <td><code>LD SP, HL</code></td>
+                <td class="len">1</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">SP = HL</span><span class="desc-ja">SPにHLを転送。</span></td>
+            </tr>
+            <tr>
+                <td><code>LD SP, IX</code></td>
+                <td class="len">2</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">SP = IX</span><span class="desc-ja">SPにIXを転送。</span></td>
+            </tr>
+            <tr>
+                <td><code>LD SP, IY</code></td>
+                <td class="len">2</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">SP = IY</span><span class="desc-ja">SPにIYを転送。</span></td>
+            </tr>
+            <tr>
+                <td><code>PUSH qq</code></td>
+                <td class="len">1</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">Push qq</span><span class="desc-ja">スタックプッシュ (BC, DE, HL, AF)。</span></td>
+            </tr>
+            <tr>
+                <td><code>PUSH IX</code></td>
+                <td class="len">2</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">Push IX</span><span class="desc-ja">IXプッシュ。</span></td>
+            </tr>
+            <tr>
+                <td><code>PUSH IY</code></td>
+                <td class="len">2</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">Push IY</span><span class="desc-ja">IYプッシュ。</span></td>
+            </tr>
+            <tr>
+                <td><code>POP qq</code></td>
+                <td class="len">1</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">Pop qq</span><span class="desc-ja">スタックポップ (BC, DE, HL, AF)。</span></td>
+            </tr>
+            <tr>
+                <td><code>POP IX</code></td>
+                <td class="len">2</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">Pop IX</span><span class="desc-ja">IXポップ。</span></td>
+            </tr>
+            <tr>
+                <td><code>POP IY</code></td>
+                <td class="len">2</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">Pop IY</span><span class="desc-ja">IYポップ。</span></td>
+            </tr>
+
+            <!-- EXCHANGE, BLOCK, SEARCH -->
+            <tr>
+                <td colspan="4" style="background:#0e639c; color:white; font-family:'Segoe UI'">EXCHANGE & BLOCK
+                    MOVE/SEARCH</td>
+            </tr>
+
+            <tr>
+                <td><code>EX DE, HL</code></td>
+                <td class="len">1</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">DE <-> HL</span><span class="desc-ja">DEとHLを交換。</span></td>
+            </tr>
+            <tr>
+                <td><code>EX AF, AF'</code></td>
+                <td class="len">1</td>
+                <td><span class="f-aff">* * * * * *</span></td>
+                <td><span class="desc-en">AF <-> AF'</span><span class="desc-ja">AFと裏AFを交換。</span></td>
+            </tr>
+            <tr>
+                <td><code>EXX</code></td>
+                <td class="len">1</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">Swap BC,DE,HL</span><span class="desc-ja">BC, DE, HLと裏レジスタを交換。</span></td>
+            </tr>
+            <tr>
+                <td><code>EX (SP), HL</code></td>
+                <td class="len">1</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">(SP) <-> HL</span><span class="desc-ja">スタックトップとHLを交換。</span></td>
+            </tr>
+            <tr>
+                <td><code>EX (SP), IX</code></td>
+                <td class="len">2</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">(SP) <-> IX</span><span class="desc-ja">スタックトップとIXを交換。</span></td>
+            </tr>
+            <tr>
+                <td><code>EX (SP), IY</code></td>
+                <td class="len">2</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">(SP) <-> IY</span><span class="desc-ja">スタックトップとIYを交換。</span></td>
+            </tr>
+
+            <tr>
+                <td><code>LDI</code></td>
+                <td class="len">2</td>
+                <td><span class="f-0">- - 0 P 0 -</span></td>
+                <td><span class="desc-en">Block Load Inc</span><span class="desc-ja">(DE)=(HL), BC--, DE++,
+                        HL++。BC!=0ならP/V=1。</span></td>
+            </tr>
+            <tr>
+                <td><code>LDIR</code></td>
+                <td class="len">2</td>
+                <td><span class="f-0">- - 0 0 0 -</span></td>
+                <td><span class="desc-en">Block Load Rep</span><span class="desc-ja">BC=0になるまでLDIを繰り返す。</span></td>
+            </tr>
+            <tr>
+                <td><code>LDD</code></td>
+                <td class="len">2</td>
+                <td><span class="f-0">- - 0 P 0 -</span></td>
+                <td><span class="desc-en">Block Load Dec</span><span class="desc-ja">(DE)=(HL), BC--, DE--,
+                        HL--。BC!=0ならP/V=1。</span></td>
+            </tr>
+            <tr>
+                <td><code>LDDR</code></td>
+                <td class="len">2</td>
+                <td><span class="f-0">- - 0 0 0 -</span></td>
+                <td><span class="desc-en">Block Load Dec Rep</span><span class="desc-ja">BC=0になるまでLDDを繰り返す。</span></td>
+            </tr>
+            <tr>
+                <td><code>CPI</code></td>
+                <td class="len">2</td>
+                <td><span class="f-aff">* * * * 1 -</span></td>
+                <td><span class="desc-en">Compare Inc</span><span class="desc-ja">A-(HL), HL++,
+                        BC--。一致でZ=1。BC!=0でP/V=1。</span></td>
+            </tr>
+            <tr>
+                <td><code>CPIR</code></td>
+                <td class="len">2</td>
+                <td><span class="f-aff">* * * * 1 -</span></td>
+                <td><span class="desc-en">Compare Rep</span><span class="desc-ja">一致するかBC=0になるまでCPIを繰り返す。</span></td>
+            </tr>
+            <tr>
+                <td><code>CPD</code></td>
+                <td class="len">2</td>
+                <td><span class="f-aff">* * * * 1 -</span></td>
+                <td><span class="desc-en">Compare Dec</span><span class="desc-ja">A-(HL), HL--,
+                        BC--。一致でZ=1。BC!=0でP/V=1。</span></td>
+            </tr>
+            <tr>
+                <td><code>CPDR</code></td>
+                <td class="len">2</td>
+                <td><span class="f-aff">* * * * 1 -</span></td>
+                <td><span class="desc-en">Compare Dec Rep</span><span class="desc-ja">一致するかBC=0になるまでCPDを繰り返す。</span>
+                </td>
+            </tr>
+
+            <!-- ARITHMETIC -->
+            <tr>
+                <td colspan="4" style="background:#0e639c; color:white; font-family:'Segoe UI'">ARITHMETIC & LOGIC</td>
+            </tr>
+
+            <!-- ADD -->
+            <tr>
+                <td><code>ADD A, r</code></td>
+                <td class="len">1</td>
+                <td><span class="f-aff">* * * * 0 *</span></td>
+                <td><span class="desc-en">A = A + r</span><span class="desc-ja">Aにレジスタrを加算。</span></td>
+            </tr>
+            <tr>
+                <td><code>ADD A, n</code></td>
+                <td class="len">2</td>
+                <td><span class="f-aff">* * * * 0 *</span></td>
+                <td><span class="desc-en">A = A + n</span><span class="desc-ja">Aに即値nを加算。</span></td>
+            </tr>
+            <tr>
+                <td><code>ADD A, (HL)</code></td>
+                <td class="len">1</td>
+                <td><span class="f-aff">* * * * 0 *</span></td>
+                <td><span class="desc-en">A = A + (HL)</span><span class="desc-ja">Aに(HL)を加算。</span></td>
+            </tr>
+            <tr>
+                <td><code>ADD A, (IX+d)</code></td>
+                <td class="len">3</td>
+                <td><span class="f-aff">* * * * 0 *</span></td>
+                <td><span class="desc-en">A = A + (IX+d)</span><span class="desc-ja">Aに(IX+d)を加算。</span></td>
+            </tr>
+            <tr>
+                <td><code>ADD A, (IY+d)</code></td>
+                <td class="len">3</td>
+                <td><span class="f-aff">* * * * 0 *</span></td>
+                <td><span class="desc-en">A = A + (IY+d)</span><span class="desc-ja">Aに(IY+d)を加算。</span></td>
+            </tr>
+
+            <!-- ADC -->
+            <tr>
+                <td><code>ADC A, r</code></td>
+                <td class="len">1</td>
+                <td><span class="f-aff">* * * * 0 *</span></td>
+                <td><span class="desc-en">A = A + r + C</span><span class="desc-ja">Aにレジスタrとキャリーを加算。</span></td>
+            </tr>
+            <tr>
+                <td><code>ADC A, n</code></td>
+                <td class="len">2</td>
+                <td><span class="f-aff">* * * * 0 *</span></td>
+                <td><span class="desc-en">A = A + n + C</span><span class="desc-ja">Aに即値nとキャリーを加算。</span></td>
+            </tr>
+            <tr>
+                <td><code>ADC A, (HL)</code></td>
+                <td class="len">1</td>
+                <td><span class="f-aff">* * * * 0 *</span></td>
+                <td><span class="desc-en">A = A + (HL) + C</span><span class="desc-ja">Aに(HL)とキャリーを加算。</span></td>
+            </tr>
+            <tr>
+                <td><code>ADC A, (IX+d)</code></td>
+                <td class="len">3</td>
+                <td><span class="f-aff">* * * * 0 *</span></td>
+                <td><span class="desc-en">A = A + (IX+d) + C</span><span class="desc-ja">Aに(IX+d)とキャリーを加算。</span></td>
+            </tr>
+            <tr>
+                <td><code>ADC A, (IY+d)</code></td>
+                <td class="len">3</td>
+                <td><span class="f-aff">* * * * 0 *</span></td>
+                <td><span class="desc-en">A = A + (IY+d) + C</span><span class="desc-ja">Aに(IY+d)とキャリーを加算。</span></td>
+            </tr>
+
+            <!-- SUB -->
+            <tr>
+                <td><code>SUB A, r</code></td>
+                <td class="len">1</td>
+                <td><span class="f-aff">* * * * 1 *</span></td>
+                <td><span class="desc-en">A = A - r</span><span class="desc-ja">Aからレジスタrを減算。</span></td>
+            </tr>
+            <tr>
+                <td><code>SUB A, n</code></td>
+                <td class="len">2</td>
+                <td><span class="f-aff">* * * * 1 *</span></td>
+                <td><span class="desc-en">A = A - n</span><span class="desc-ja">Aから即値nを減算。</span></td>
+            </tr>
+            <tr>
+                <td><code>SUB A, (HL)</code></td>
+                <td class="len">1</td>
+                <td><span class="f-aff">* * * * 1 *</span></td>
+                <td><span class="desc-en">A = A - (HL)</span><span class="desc-ja">Aから(HL)を減算。</span></td>
+            </tr>
+            <tr>
+                <td><code>SUB A, (IX+d)</code></td>
+                <td class="len">3</td>
+                <td><span class="f-aff">* * * * 1 *</span></td>
+                <td><span class="desc-en">A = A - (IX+d)</span><span class="desc-ja">Aから(IX+d)を減算。</span></td>
+            </tr>
+            <tr>
+                <td><code>SUB A, (IY+d)</code></td>
+                <td class="len">3</td>
+                <td><span class="f-aff">* * * * 1 *</span></td>
+                <td><span class="desc-en">A = A - (IY+d)</span><span class="desc-ja">Aから(IY+d)を減算。</span></td>
+            </tr>
+
+            <!-- SBC -->
+            <tr>
+                <td><code>SBC A, r</code></td>
+                <td class="len">1</td>
+                <td><span class="f-aff">* * * * 1 *</span></td>
+                <td><span class="desc-en">A = A - r - C</span><span class="desc-ja">Aからレジスタrとキャリーを減算。</span></td>
+            </tr>
+            <tr>
+                <td><code>SBC A, n</code></td>
+                <td class="len">2</td>
+                <td><span class="f-aff">* * * * 1 *</span></td>
+                <td><span class="desc-en">A = A - n - C</span><span class="desc-ja">Aから即値nとキャリーを減算。</span></td>
+            </tr>
+            <tr>
+                <td><code>SBC A, (HL)</code></td>
+                <td class="len">1</td>
+                <td><span class="f-aff">* * * * 1 *</span></td>
+                <td><span class="desc-en">A = A - (HL) - C</span><span class="desc-ja">Aから(HL)とキャリーを減算。</span></td>
+            </tr>
+            <tr>
+                <td><code>SBC A, (IX+d)</code></td>
+                <td class="len">3</td>
+                <td><span class="f-aff">* * * * 1 *</span></td>
+                <td><span class="desc-en">A = A - (IX+d) - C</span><span class="desc-ja">Aから(IX+d)とキャリーを減算。</span></td>
+            </tr>
+            <tr>
+                <td><code>SBC A, (IY+d)</code></td>
+                <td class="len">3</td>
+                <td><span class="f-aff">* * * * 1 *</span></td>
+                <td><span class="desc-en">A = A - (IY+d) - C</span><span class="desc-ja">Aから(IY+d)とキャリーを減算。</span></td>
+            </tr>
+
+            <!-- AND -->
+            <tr>
+                <td><code>AND A, r</code></td>
+                <td class="len">1</td>
+                <td><span class="f-aff">* * 1 P 0 0</span></td>
+                <td><span class="desc-en">A = A & r</span><span class="desc-ja">Aとrの論理積。</span></td>
+            </tr>
+            <tr>
+                <td><code>AND A, n</code></td>
+                <td class="len">2</td>
+                <td><span class="f-aff">* * 1 P 0 0</span></td>
+                <td><span class="desc-en">A = A & n</span><span class="desc-ja">Aと即値nの論理積。</span></td>
+            </tr>
+            <tr>
+                <td><code>AND A, (HL)</code></td>
+                <td class="len">1</td>
+                <td><span class="f-aff">* * 1 P 0 0</span></td>
+                <td><span class="desc-en">A = A & (HL)</span><span class="desc-ja">Aと(HL)の論理積。</span></td>
+            </tr>
+            <tr>
+                <td><code>AND A, (IX+d)</code></td>
+                <td class="len">3</td>
+                <td><span class="f-aff">* * 1 P 0 0</span></td>
+                <td><span class="desc-en">A = A & (IX+d)</span><span class="desc-ja">Aと(IX+d)の論理積。</span></td>
+            </tr>
+            <tr>
+                <td><code>AND A, (IY+d)</code></td>
+                <td class="len">3</td>
+                <td><span class="f-aff">* * 1 P 0 0</span></td>
+                <td><span class="desc-en">A = A & (IY+d)</span><span class="desc-ja">Aと(IY+d)の論理積。</span></td>
+            </tr>
+
+            <!-- OR -->
+            <tr>
+                <td><code>OR A, r</code></td>
+                <td class="len">1</td>
+                <td><span class="f-aff">* * 0 P 0 0</span></td>
+                <td><span class="desc-en">A = A | r</span><span class="desc-ja">Aとrの論理和。</span></td>
+            </tr>
+            <tr>
+                <td><code>OR A, n</code></td>
+                <td class="len">2</td>
+                <td><span class="f-aff">* * 0 P 0 0</span></td>
+                <td><span class="desc-en">A = A | n</span><span class="desc-ja">Aと即値nの論理和。</span></td>
+            </tr>
+            <tr>
+                <td><code>OR A, (HL)</code></td>
+                <td class="len">1</td>
+                <td><span class="f-aff">* * 0 P 0 0</span></td>
+                <td><span class="desc-en">A = A | (HL)</span><span class="desc-ja">Aと(HL)の論理和。</span></td>
+            </tr>
+            <tr>
+                <td><code>OR A, (IX+d)</code></td>
+                <td class="len">3</td>
+                <td><span class="f-aff">* * 0 P 0 0</span></td>
+                <td><span class="desc-en">A = A | (IX+d)</span><span class="desc-ja">Aと(IX+d)の論理和。</span></td>
+            </tr>
+            <tr>
+                <td><code>OR A, (IY+d)</code></td>
+                <td class="len">3</td>
+                <td><span class="f-aff">* * 0 P 0 0</span></td>
+                <td><span class="desc-en">A = A | (IY+d)</span><span class="desc-ja">Aと(IY+d)の論理和。</span></td>
+            </tr>
+
+            <!-- XOR -->
+            <tr>
+                <td><code>XOR A, r</code></td>
+                <td class="len">1</td>
+                <td><span class="f-aff">* * 0 P 0 0</span></td>
+                <td><span class="desc-en">A = A ^ r</span><span class="desc-ja">Aとrの排他的論理和。</span></td>
+            </tr>
+            <tr>
+                <td><code>XOR A, n</code></td>
+                <td class="len">2</td>
+                <td><span class="f-aff">* * 0 P 0 0</span></td>
+                <td><span class="desc-en">A = A ^ n</span><span class="desc-ja">Aと即値nの排他的論理和。</span></td>
+            </tr>
+            <tr>
+                <td><code>XOR A, (HL)</code></td>
+                <td class="len">1</td>
+                <td><span class="f-aff">* * 0 P 0 0</span></td>
+                <td><span class="desc-en">A = A ^ (HL)</span><span class="desc-ja">Aと(HL)の排他的論理和。</span></td>
+            </tr>
+            <tr>
+                <td><code>XOR A, (IX+d)</code></td>
+                <td class="len">3</td>
+                <td><span class="f-aff">* * 0 P 0 0</span></td>
+                <td><span class="desc-en">A = A ^ (IX+d)</span><span class="desc-ja">Aと(IX+d)の排他的論理和。</span></td>
+            </tr>
+            <tr>
+                <td><code>XOR A, (IY+d)</code></td>
+                <td class="len">3</td>
+                <td><span class="f-aff">* * 0 P 0 0</span></td>
+                <td><span class="desc-en">A = A ^ (IY+d)</span><span class="desc-ja">Aと(IY+d)の排他的論理和。</span></td>
+            </tr>
+
+            <!-- CP -->
+            <tr>
+                <td><code>CP A, r</code></td>
+                <td class="len">1</td>
+                <td><span class="f-aff">* * * * 1 *</span></td>
+                <td><span class="desc-en">Cmp A - r</span><span class="desc-ja">Aとrを比較。</span></td>
+            </tr>
+            <tr>
+                <td><code>CP A, n</code></td>
+                <td class="len">2</td>
+                <td><span class="f-aff">* * * * 1 *</span></td>
+                <td><span class="desc-en">Cmp A - n</span><span class="desc-ja">Aと即値nを比較。</span></td>
+            </tr>
+            <tr>
+                <td><code>CP A, (HL)</code></td>
+                <td class="len">1</td>
+                <td><span class="f-aff">* * * * 1 *</span></td>
+                <td><span class="desc-en">Cmp A - (HL)</span><span class="desc-ja">Aと(HL)を比較。</span></td>
+            </tr>
+            <tr>
+                <td><code>CP A, (IX+d)</code></td>
+                <td class="len">3</td>
+                <td><span class="f-aff">* * * * 1 *</span></td>
+                <td><span class="desc-en">Cmp A - (IX+d)</span><span class="desc-ja">Aと(IX+d)を比較。</span></td>
+            </tr>
+            <tr>
+                <td><code>CP A, (IY+d)</code></td>
+                <td class="len">3</td>
+                <td><span class="f-aff">* * * * 1 *</span></td>
+                <td><span class="desc-en">Cmp A - (IY+d)</span><span class="desc-ja">Aと(IY+d)を比較。</span></td>
+            </tr>
+
+            <!-- INC/DEC -->
+            <tr>
+                <td><code>INC r</code></td>
+                <td class="len">1</td>
+                <td><span class="f-aff">* * * P 0 -</span></td>
+                <td><span class="desc-en">r++</span><span class="desc-ja">レジスタインクリメント。</span></td>
+            </tr>
+            <tr>
+                <td><code>INC (HL)</code></td>
+                <td class="len">1</td>
+                <td><span class="f-aff">* * * P 0 -</span></td>
+                <td><span class="desc-en">(HL)++</span><span class="desc-ja">HL参照メモリインクリメント。</span></td>
+            </tr>
+            <tr>
+                <td><code>INC (IX+d)</code></td>
+                <td class="len">3</td>
+                <td><span class="f-aff">* * * P 0 -</span></td>
+                <td><span class="desc-en">(IX+d)++</span><span class="desc-ja">IX参照メモリインクリメント。</span></td>
+            </tr>
+            <tr>
+                <td><code>INC (IY+d)</code></td>
+                <td class="len">3</td>
+                <td><span class="f-aff">* * * P 0 -</span></td>
+                <td><span class="desc-en">(IY+d)++</span><span class="desc-ja">IY参照メモリインクリメント。</span></td>
+            </tr>
+
+            <tr>
+                <td><code>DEC r</code></td>
+                <td class="len">1</td>
+                <td><span class="f-aff">* * * P 1 -</span></td>
+                <td><span class="desc-en">r--</span><span class="desc-ja">レジスタデクリメント。</span></td>
+            </tr>
+            <tr>
+                <td><code>DEC (HL)</code></td>
+                <td class="len">1</td>
+                <td><span class="f-aff">* * * P 1 -</span></td>
+                <td><span class="desc-en">(HL)--</span><span class="desc-ja">HL参照メモリデクリメント。</span></td>
+            </tr>
+            <tr>
+                <td><code>DEC (IX+d)</code></td>
+                <td class="len">3</td>
+                <td><span class="f-aff">* * * P 1 -</span></td>
+                <td><span class="desc-en">(IX+d)--</span><span class="desc-ja">IX参照メモリデクリメント。</span></td>
+            </tr>
+            <tr>
+                <td><code>DEC (IY+d)</code></td>
+                <td class="len">3</td>
+                <td><span class="f-aff">* * * P 1 -</span></td>
+                <td><span class="desc-en">(IY+d)--</span><span class="desc-ja">IY参照メモリデクリメント。</span></td>
+            </tr>
+
+            <tr>
+                <td><code>DAA</code></td>
+                <td class="len">1</td>
+                <td><span class="f-aff">* * * P - *</span></td>
+                <td><span class="desc-en">BCD Adjust</span><span class="desc-ja">BCD補正。</span></td>
+            </tr>
+            <tr>
+                <td><code>CPL</code></td>
+                <td class="len">1</td>
+                <td><span class="f-dash">- - 1 - 1 -</span></td>
+                <td><span class="desc-en">Invert A</span><span class="desc-ja">Aのビット反転。</span></td>
+            </tr>
+            <tr>
+                <td><code>NEG</code></td>
+                <td class="len">2</td>
+                <td><span class="f-aff">* * * * 1 *</span></td>
+                <td><span class="desc-en">A = -A</span><span class="desc-ja">Aの2の補数（符号反転）。</span></td>
+            </tr>
+            <tr>
+                <td><code>CCF</code></td>
+                <td class="len">1</td>
+                <td><span class="f-dash">- - * - 0 *</span></td>
+                <td><span class="desc-en">Invert C</span><span class="desc-ja">キャリーフラグ反転。</span></td>
+            </tr>
+            <tr>
+                <td><code>SCF</code></td>
+                <td class="len">1</td>
+                <td><span class="f-dash">- - 0 - 0 1</span></td>
+                <td><span class="desc-en">Set C</span><span class="desc-ja">キャリーフラグセット。</span></td>
+            </tr>
+
+            <!-- CONTROL -->
+            <tr>
+                <td colspan="4" style="background:#0e639c; color:white; font-family:'Segoe UI'">CONTROL FLOW & IO</td>
+            </tr>
+
+            <tr>
+                <td><code>JP nn</code></td>
+                <td class="len">3</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">Jump nn</span><span class="desc-ja">無条件ジャンプ。</span></td>
+            </tr>
+            <tr>
+                <td><code>JR e</code></td>
+                <td class="len">2</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">Jump Rel</span><span class="desc-ja">相対ジャンプ。</span></td>
+            </tr>
+            <tr>
+                <td><code>DJNZ e</code></td>
+                <td class="len">2</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">Dec B, Jump Rel</span><span class="desc-ja">Bを減算し0でなければジャンプ。</span></td>
+            </tr>
+            <tr>
+                <td><code>CALL nn</code></td>
+                <td class="len">3</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">Call nn</span><span class="desc-ja">サブルーチンコール。</span></td>
+            </tr>
+            <tr>
+                <td><code>RET</code></td>
+                <td class="len">1</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">Return</span><span class="desc-ja">復帰。</span></td>
+            </tr>
+            <tr>
+                <td><code>RETI</code></td>
+                <td class="len">2</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">Return Int</span><span class="desc-ja">割り込み復帰。</span></td>
+            </tr>
+            <tr>
+                <td><code>RETN</code></td>
+                <td class="len">2</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">Return NMI</span><span class="desc-ja">NMI復帰。</span></td>
+            </tr>
+            <tr>
+                <td><code>RST p</code></td>
+                <td class="len">1</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">Restart</span><span class="desc-ja">リスタート (p=00,08,10,18,20,28,30,38)。</span>
+                </td>
+            </tr>
+            <tr>
+                <td><code>DI</code></td>
+                <td class="len">1</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">Disable Int</span><span class="desc-ja">割り込み禁止。</span></td>
+            </tr>
+            <tr>
+                <td><code>EI</code></td>
+                <td class="len">1</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">Enable Int</span><span class="desc-ja">割り込み許可。</span></td>
+            </tr>
+            <tr>
+                <td><code>IM 0/1/2</code></td>
+                <td class="len">2</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">Int Mode</span><span class="desc-ja">割り込みモード設定 (IM 2は未実装)。</span></td>
+            </tr>
+            <tr>
+                <td><code>NOP</code></td>
+                <td class="len">1</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">No Operation</span><span class="desc-ja">何もしない。</span></td>
+            </tr>
+            <tr>
+                <td><code>HALT</code></td>
+                <td class="len">1</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">Halt</span><span class="desc-ja">CPU停止（割り込み待ち）。</span></td>
+            </tr>
+
+            <tr>
+                <td><code>IN A, (n)</code></td>
+                <td class="len">2</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">In A, (n)</span><span class="desc-ja">ポートnからAへ入力。</span></td>
+            </tr>
+            <tr>
+                <td><code>OUT (n), A</code></td>
+                <td class="len">2</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">Out (n), A</span><span class="desc-ja">Aをポートnへ出力。</span></td>
+            </tr>
+            <tr>
+                <td><code>IN r, (C)</code></td>
+                <td class="len">2</td>
+                <td><span class="f-aff">* * 0 P 0 -</span></td>
+                <td><span class="desc-en">In r, (C)</span><span
+                        class="desc-ja">全レジスタ対応(r=A,B,C,D,E,H,L)。ポートCから入力。</span></td>
+            </tr>
+            <tr>
+                <td><code>OUT (C), r</code></td>
+                <td class="len">2</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">Out (C), r</span><span
+                        class="desc-ja">全レジスタ対応(r=A,B,C,D,E,H,L,0)。ポートCへ出力。</span></td>
+            </tr>
+
+            <!-- ROTATE & BIT -->
+            <tr>
+                <td colspan="4" style="background:#0e639c; color:white; font-family:'Segoe UI'">ROTATE & BIT
+                    MANIPULATION</td>
+            </tr>
+
+            <tr>
+                <td><code>RLCA</code></td>
+                <td class="len">1</td>
+                <td><span class="f-dash">- - 0 - 0 *</span></td>
+                <td><span class="desc-en">Rotate Left Circ A</span><span class="desc-ja">Aを左循環回転（ビット7→Cかつ0）。</span></td>
+            </tr>
+            <tr>
+                <td><code>RRCA</code></td>
+                <td class="len">1</td>
+                <td><span class="f-dash">- - 0 - 0 *</span></td>
+                <td><span class="desc-en">Rotate Right Circ A</span><span class="desc-ja">Aを右循環回転（ビット0→Cかつ7）。</span>
+                </td>
+            </tr>
+            <tr>
+                <td><code>RLA</code></td>
+                <td class="len">1</td>
+                <td><span class="f-dash">- - 0 - 0 *</span></td>
+                <td><span class="desc-en">Rotate Left A</span><span class="desc-ja">Aを左回転（C含）。</span></td>
+            </tr>
+            <tr>
+                <td><code>RRA</code></td>
+                <td class="len">1</td>
+                <td><span class="f-dash">- - 0 - 0 *</span></td>
+                <td><span class="desc-en">Rotate Right A</span><span class="desc-ja">Aを右回転（C含）。</span></td>
+            </tr>
+
+            <tr>
+                <td><code>RLC r</code></td>
+                <td class="len">2</td>
+                <td><span class="f-aff">* * 0 P 0 *</span></td>
+                <td><span class="desc-en">Rotate Left Circ r</span><span class="desc-ja">レジスタrを左循環回転。</span></td>
+            </tr>
+            <tr>
+                <td><code>RLC (HL)</code></td>
+                <td class="len">2</td>
+                <td><span class="f-aff">* * 0 P 0 *</span></td>
+                <td><span class="desc-en">Rotate Left Circ (HL)</span><span class="desc-ja">(HL)を左循環回転。</span></td>
+            </tr>
+            <tr>
+                <td><code>RLC (IX+d)</code></td>
+                <td class="len">4</td>
+                <td><span class="f-aff">* * 0 P 0 *</span></td>
+                <td><span class="desc-en">Rotate Left Circ (IX+d)</span><span class="desc-ja">(IX+d)を左循環回転。</span></td>
+            </tr>
+            <tr>
+                <td><code>RLC (IY+d)</code></td>
+                <td class="len">4</td>
+                <td><span class="f-aff">* * 0 P 0 *</span></td>
+                <td><span class="desc-en">Rotate Left Circ (IY+d)</span><span class="desc-ja">(IY+d)を左循環回転。</span></td>
+            </tr>
+
+            <tr>
+                <td><code>RRC r</code></td>
+                <td class="len">2</td>
+                <td><span class="f-aff">* * 0 P 0 *</span></td>
+                <td><span class="desc-en">Rotate Right Circ r</span><span class="desc-ja">レジスタrを右循環回転。</span></td>
+            </tr>
+            <tr>
+                <td><code>RRC (HL)</code></td>
+                <td class="len">2</td>
+                <td><span class="f-aff">* * 0 P 0 *</span></td>
+                <td><span class="desc-en">Rotate Right Circ (HL)</span><span class="desc-ja">(HL)を右循環回転。</span></td>
+            </tr>
+            <tr>
+                <td><code>RRC (IX+d)</code></td>
+                <td class="len">4</td>
+                <td><span class="f-aff">* * 0 P 0 *</span></td>
+                <td><span class="desc-en">Rotate Right Circ (IX+d)</span><span class="desc-ja">(IX+d)を右循環回転。</span></td>
+            </tr>
+            <tr>
+                <td><code>RRC (IY+d)</code></td>
+                <td class="len">4</td>
+                <td><span class="f-aff">* * 0 P 0 *</span></td>
+                <td><span class="desc-en">Rotate Right Circ (IY+d)</span><span class="desc-ja">(IY+d)を右循環回転。</span></td>
+            </tr>
+
+            <tr>
+                <td><code>RL r</code></td>
+                <td class="len">2</td>
+                <td><span class="f-aff">* * 0 P 0 *</span></td>
+                <td><span class="desc-en">Rotate Left r</span><span class="desc-ja">レジスタrを左回転(C含)。</span></td>
+            </tr>
+            <tr>
+                <td><code>RL (HL)</code></td>
+                <td class="len">2</td>
+                <td><span class="f-aff">* * 0 P 0 *</span></td>
+                <td><span class="desc-en">Rotate Left (HL)</span><span class="desc-ja">(HL)を左回転(C含)。</span></td>
+            </tr>
+            <tr>
+                <td><code>RL (IX+d)</code></td>
+                <td class="len">4</td>
+                <td><span class="f-aff">* * 0 P 0 *</span></td>
+                <td><span class="desc-en">Rotate Left (IX+d)</span><span class="desc-ja">(IX+d)を左回転(C含)。</span></td>
+            </tr>
+            <tr>
+                <td><code>RL (IY+d)</code></td>
+                <td class="len">4</td>
+                <td><span class="f-aff">* * 0 P 0 *</span></td>
+                <td><span class="desc-en">Rotate Left (IY+d)</span><span class="desc-ja">(IY+d)を左回転(C含)。</span></td>
+            </tr>
+
+            <tr>
+                <td><code>RR r</code></td>
+                <td class="len">2</td>
+                <td><span class="f-aff">* * 0 P 0 *</span></td>
+                <td><span class="desc-en">Rotate Right r</span><span class="desc-ja">レジスタrを右回転(C含)。</span></td>
+            </tr>
+            <tr>
+                <td><code>RR (HL)</code></td>
+                <td class="len">2</td>
+                <td><span class="f-aff">* * 0 P 0 *</span></td>
+                <td><span class="desc-en">Rotate Right (HL)</span><span class="desc-ja">(HL)を右回転(C含)。</span></td>
+            </tr>
+            <tr>
+                <td><code>RR (IX+d)</code></td>
+                <td class="len">4</td>
+                <td><span class="f-aff">* * 0 P 0 *</span></td>
+                <td><span class="desc-en">Rotate Right (IX+d)</span><span class="desc-ja">(IX+d)を右回転(C含)。</span></td>
+            </tr>
+            <tr>
+                <td><code>RR (IY+d)</code></td>
+                <td class="len">4</td>
+                <td><span class="f-aff">* * 0 P 0 *</span></td>
+                <td><span class="desc-en">Rotate Right (IY+d)</span><span class="desc-ja">(IY+d)を右回転(C含)。</span></td>
+            </tr>
+
+            <tr>
+                <td><code>SLA r</code></td>
+                <td class="len">2</td>
+                <td><span class="f-aff">* * 0 P 0 *</span></td>
+                <td><span class="desc-en">Shift Left Arith</span><span class="desc-ja">算術左シフト。</span></td>
+            </tr>
+            <tr>
+                <td><code>SLA (HL)</code></td>
+                <td class="len">2</td>
+                <td><span class="f-aff">* * 0 P 0 *</span></td>
+                <td><span class="desc-en">Shift Left Arith (HL)</span><span class="desc-ja">(HL)を算術左シフト。</span></td>
+            </tr>
+            <tr>
+                <td><code>SLA (IX+d)</code></td>
+                <td class="len">4</td>
+                <td><span class="f-aff">* * 0 P 0 *</span></td>
+                <td><span class="desc-en">Shift Left Arith (IX+d)</span><span class="desc-ja">(IX+d)を算術左シフト。</span></td>
+            </tr>
+            <tr>
+                <td><code>SLA (IY+d)</code></td>
+                <td class="len">4</td>
+                <td><span class="f-aff">* * 0 P 0 *</span></td>
+                <td><span class="desc-en">Shift Left Arith (IY+d)</span><span class="desc-ja">(IY+d)を算術左シフト。</span></td>
+            </tr>
+
+            <tr>
+                <td><code>SRA r</code></td>
+                <td class="len">2</td>
+                <td><span class="f-aff">* * 0 P 0 *</span></td>
+                <td><span class="desc-en">Shift Right Arith</span><span class="desc-ja">算術右シフト（符号維持）。</span></td>
+            </tr>
+            <tr>
+                <td><code>SRA (HL)</code></td>
+                <td class="len">2</td>
+                <td><span class="f-aff">* * 0 P 0 *</span></td>
+                <td><span class="desc-en">Shift Right Arith (HL)</span><span class="desc-ja">(HL)を算術右シフト。</span></td>
+            </tr>
+            <tr>
+                <td><code>SRA (IX+d)</code></td>
+                <td class="len">4</td>
+                <td><span class="f-aff">* * 0 P 0 *</span></td>
+                <td><span class="desc-en">Shift Right Arith (IX+d)</span><span class="desc-ja">(IX+d)を算術右シフト。</span>
+                </td>
+            </tr>
+            <tr>
+                <td><code>SRA (IY+d)</code></td>
+                <td class="len">4</td>
+                <td><span class="f-aff">* * 0 P 0 *</span></td>
+                <td><span class="desc-en">Shift Right Arith (IY+d)</span><span class="desc-ja">(IY+d)を算術右シフト。</span>
+                </td>
+            </tr>
+
+            <tr>
+                <td><code>SRL r</code></td>
+                <td class="len">2</td>
+                <td><span class="f-aff">* * 0 P 0 *</span></td>
+                <td><span class="desc-en">Shift Right Logic</span><span class="desc-ja">論理右シフト（0埋め）。</span></td>
+            </tr>
+            <tr>
+                <td><code>SRL (HL)</code></td>
+                <td class="len">2</td>
+                <td><span class="f-aff">* * 0 P 0 *</span></td>
+                <td><span class="desc-en">Shift Right Logic (HL)</span><span class="desc-ja">(HL)を論理右シフト。</span></td>
+            </tr>
+            <tr>
+                <td><code>SRL (IX+d)</code></td>
+                <td class="len">4</td>
+                <td><span class="f-aff">* * 0 P 0 *</span></td>
+                <td><span class="desc-en">Shift Right Logic (IX+d)</span><span class="desc-ja">(IX+d)を論理右シフト。</span>
+                </td>
+            </tr>
+            <tr>
+                <td><code>SRL (IY+d)</code></td>
+                <td class="len">4</td>
+                <td><span class="f-aff">* * 0 P 0 *</span></td>
+                <td><span class="desc-en">Shift Right Logic (IY+d)</span><span class="desc-ja">(IY+d)を論理右シフト。</span>
+                </td>
+            </tr>
+
+            <tr>
+                <td><code>BIT b, r</code></td>
+                <td class="len">2</td>
+                <td><span class="f-dash">- * 1 - 0 -</span></td>
+                <td><span class="desc-en">Test Bit</span><span class="desc-ja">ビットbをテスト。Zフラグ更新。</span></td>
+            </tr>
+            <tr>
+                <td><code>BIT b, (HL)</code></td>
+                <td class="len">2</td>
+                <td><span class="f-dash">- * 1 - 0 -</span></td>
+                <td><span class="desc-en">Test Bit (HL)</span><span class="desc-ja">(HL)のビットbをテスト。</span></td>
+            </tr>
+            <tr>
+                <td><code>BIT b, (IX+d)</code></td>
+                <td class="len">4</td>
+                <td><span class="f-dash">- * 1 - 0 -</span></td>
+                <td><span class="desc-en">Test Bit (IX+d)</span><span class="desc-ja">(IX+d)のビットbをテスト。</span></td>
+            </tr>
+            <tr>
+                <td><code>BIT b, (IY+d)</code></td>
+                <td class="len">4</td>
+                <td><span class="f-dash">- * 1 - 0 -</span></td>
+                <td><span class="desc-en">Test Bit (IY+d)</span><span class="desc-ja">(IY+d)のビットbをテスト。</span></td>
+            </tr>
+
+            <tr>
+                <td><code>SET b, r</code></td>
+                <td class="len">2</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">Set Bit</span><span class="desc-ja">ビットbを1にセット。</span></td>
+            </tr>
+            <tr>
+                <td><code>SET b, (HL)</code></td>
+                <td class="len">2</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">Set Bit (HL)</span><span class="desc-ja">(HL)のビットbを1にセット。</span></td>
+            </tr>
+            <tr>
+                <td><code>SET b, (IX+d)</code></td>
+                <td class="len">4</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">Set Bit (IX+d)</span><span class="desc-ja">(IX+d)のビットbを1にセット。</span></td>
+            </tr>
+            <tr>
+                <td><code>SET b, (IY+d)</code></td>
+                <td class="len">4</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">Set Bit (IY+d)</span><span class="desc-ja">(IY+d)のビットbを1にセット。</span></td>
+            </tr>
+
+            <tr>
+                <td><code>RES b, r</code></td>
+                <td class="len">2</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">Reset Bit</span><span class="desc-ja">ビットbを0にリセット。</span></td>
+            </tr>
+            <tr>
+                <td><code>RES b, (HL)</code></td>
+                <td class="len">2</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">Reset Bit (HL)</span><span class="desc-ja">(HL)のビットbを0にリセット。</span></td>
+            </tr>
+            <tr>
+                <td><code>RES b, (IX+d)</code></td>
+                <td class="len">4</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">Reset Bit (IX+d)</span><span class="desc-ja">(IX+d)のビットbを0にリセット。</span></td>
+            </tr>
+            <tr>
+                <td><code>RES b, (IY+d)</code></td>
+                <td class="len">4</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">Reset Bit (IY+d)</span><span class="desc-ja">(IY+d)のビットbを0にリセット。</span></td>
+            </tr>
+
+            <!-- PSEUDO-OPS -->
+            <tr>
+                <td colspan="4" style="background:#444; color:white; font-family:'Segoe UI'">PSEUDO-OPS (ASSEMBLER
+                    DIRECTIVES)</td>
+            </tr>
+            <tr>
+                <td><code>ORG nn</code></td>
+                <td class="len">0</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">Origin: Set start address.</span><span
+                        class="desc-ja">プログラムの開始アドレス（原点）を設定します。</span><span class="example">Example:
+                        <code>ORG 0x100</code> (Start at 0x100)</span></td>
+            </tr>
+            <tr>
+                <td><code>EQU nn</code></td>
+                <td class="len">0</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">Equate: Define constant.</span><span class="desc-ja">定数シンボルを定義します。</span><span
+                        class="example">Example: <code>PORT EQU 0x80</code> (PORT = 0x80)</span></td>
+            </tr>
+            <tr>
+                <td><code>DB n, ...</code></td>
+                <td class="len">N</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">Define Byte: Store 8-bit values.</span><span
+                        class="desc-ja">8ビット値（バイトデータ）をメモリに配置します。</span><span class="example">Example:
+                        <code>DB 0xAA, 0xBB, 10</code></span></td>
+            </tr>
+            <tr>
+                <td><code>DW nn, ...</code></td>
+                <td class="len">N</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">Define Word: Store 16-bit values.</span><span
+                        class="desc-ja">16ビット値（ワードデータ）をリトルエンディアンで配置します。</span><span class="example">Example:
+                        <code>DW 0x1234, LABEL</code> (0x34, 0x12...)</span></td>
+            </tr>
+            <tr>
+                <td><code>DS nn</code></td>
+                <td class="len">nn</td>
+                <td><span class="f-dash">- - - - - -</span></td>
+                <td><span class="desc-en">Define Space: Reserve bytes (0).</span><span
+                        class="desc-ja">指定バイト数分の領域を確保します（0で初期化）。</span><span class="example">Example: <code>DS 16</code>
+                        (Reserve 16 bytes)</span></td>
+            </tr>
+        </tbody>
+    </table>
+
+</body>
+
+</html>

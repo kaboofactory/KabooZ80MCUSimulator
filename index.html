@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KabooZ80MCUSimulator</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="samples.js"></script>
+    <script src="script.js" defer></script>
+</head>
+
+<body>
+
+    <div class="container">
+        <!-- LEFT PANE: IDE & CONTROLS -->
+        <div class="ide-pane">
+            <header class="ide-header">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h1 style="margin: 0;">Z80 IDE</h1>
+                    <a href="help.html" target="_blank"
+                        style="color: #569cd6; text-decoration: none; font-size: 14px; margin-right: 15px;">Help</a>
+                    <a href="instruction_set.html" target="_blank"
+                        style="color: #569cd6; text-decoration: none; font-size: 14px;">Instruction Set</a>
+                </div>
+                <div class="controls">
+                    <input type="file" id="file-input" style="display: none;" accept=".asm,.z80,.txt">
+                    <button id="btn-open" title="Open Assembly File">Open</button>
+
+                    <button id="btn-save" title="Save Source Code">Save</button>
+                    <button id="btn-assemble" title="Compile Source">Assemble</button>
+                    <button id="btn-listing" title="Download Assembler Listing">List</button>
+                    <div class="sep"></div>
+                    <button id="btn-run" class="primary" title="Continuous Run">Run</button>
+                    <button id="btn-step" title="Execute One Instruction">Step</button>
+                    <button id="btn-stop" title="Stop Execution">Stop</button>
+                    <button id="btn-reset" title="Reset CPU & Memory">Reset</button>
+                    <div class="sep"></div>
+                    <!-- Sample Selector -->
+                    <select id="sample-selector"
+                        style="margin-right: 10px; padding: 2px; font-size: 12px; cursor: pointer;">
+                        <option value="" disabled selected>Samples...</option>
+                    </select>
+                    <label>Target: <span id="speed-val">10000</span> IPS <input type="range" id="clock-speed" min="0"
+                            max="13" step="1" value="8"></label>
+                </div>
+                <div class="status-bar">
+                    <span id="execution-state"
+                        style="font-weight:bold; margin-right: 10px; color: yellow;">STOPPED</span>
+                    <span id="status-bar">Ready</span>
+                    <span style="float:right">Actual: <span id="perf-hz">0</span> IPS</span>
+                </div>
+            </header>
+
+            <div class="editor-wrapper">
+                <div class="gutter" id="line-numbers">1</div>
+                <textarea id="source-code" spellcheck="false" placeholder="Write Z80 Assembly here...">
+; LED Blink Example
+START:
+    LD A, 1
+LOOP:
+    OUT (0), A
+    RLCA
+    CALL DELAY
+    JP LOOP
+
+DELAY:
+    LD B, 255
+DL: DJNZ DL
+    RET
+            </textarea>
+            </div>
+
+            <div class="debug-panel">
+                <details open>
+                    <summary>Debugger & Trace <button onclick="Main.copyDebugInfo()"
+                            style="font-size:10px; padding:2px 5px;">Copy</button></summary>
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                        <h3>Registers</h3>
+                        <label style="font-size: 12px; cursor: pointer;">
+                            <input type="checkbox" id="chk-hex" checked> Hex View
+                        </label>
+                        <label style="font-size: 12px; cursor: pointer; margin-left: 10px;">
+                            <input type="checkbox" id="chk-log-output"> Console Log
+                        </label>
+                    </div>
+                    <div class="register-grid" id="register-view">
+                        <!-- 16-bit -->
+                        <div class="reg-item" title="Accumulator & Flags">AF: <span id="reg-af">0000</span></div>
+                        <div class="reg-item">BC: <span id="reg-bc">0000</span></div>
+                        <div class="reg-item">DE: <span id="reg-de">0000</span></div>
+                        <div class="reg-item">HL: <span id="reg-hl">0000</span></div>
+
+                        <!-- 8-bit Singles -->
+                        <div class="reg-item small">A: <span id="reg-a">00</span></div>
+                        <div class="reg-item small">F: <span id="reg-f">00</span></div>
+                        <div class="reg-item small">B: <span id="reg-b">00</span></div>
+                        <div class="reg-item small">C: <span id="reg-c">00</span></div>
+                        <div class="reg-item small">D: <span id="reg-d">00</span></div>
+                        <div class="reg-item small">E: <span id="reg-e">00</span></div>
+                        <div class="reg-item small">H: <span id="reg-h">00</span></div>
+                        <div class="reg-item small">L: <span id="reg-l">00</span></div>
+
+                        <!-- Special -->
+                        <div class="reg-item">PC: <span id="reg-pc">0000</span></div>
+                        <div class="reg-item">SP: <span id="reg-sp">FFFF</span></div>
+                        <div class="reg-item">IX: <span id="reg-ix">0000</span></div>
+                        <div class="reg-item">IY: <span id="reg-iy">0000</span></div>
+
+                        <div class="reg-item" style="grid-column: span 4;">Flags: <span id="reg-flags">--------</span>
+                        </div>
+                    </div>
+
+                    <details style="margin-top: 5px;">
+                        <summary style="font-size: 11px; color: #888;">Shadow Registers</summary>
+                        <div class="register-grid">
+                            <div class="reg-item">AF': <span id="reg-af-prime">0000</span></div>
+                            <div class="reg-item">BC': <span id="reg-bc-prime">0000</span></div>
+                            <div class="reg-item">DE': <span id="reg-de-prime">0000</span></div>
+                            <div class="reg-item">HL': <span id="reg-hl-prime">0000</span></div>
+                        </div>
+                    </details>
+
+                    <div class="debug-extra">
+                        <h4>Disassembly (PC) <button onclick="Main.dumpDisasm()"
+                                style="font-size:10px; padding:2px 5px;">Dump to File</button></h4>
+                        <div id="disasm-view" class="console-box"
+                            style="height: 80px; overflow-y:auto; font-family: monospace; font-size: 12px;"></div>
+
+                        <h4>Memory Watch <button onclick="Main.dumpMemory()"
+                                style="font-size:10px; padding:2px 5px;">Dump to File</button></h4>
+                        <input type="text" id="mem-addr-input" value="8000" style="width: 60px;"> <button
+                            onclick="Main.updateMemView()">Go</button>
+                        <div id="mem-view" class="console-box"
+                            style="height: 60px; font-family: monospace; font-size: 12px;"></div>
+                    </div>
+                </details>
+            </div>
+
+
+        </div>
+
+
+
+        <!-- RESIZER SPLITTER -->
+        <div class="resizer" id="drag-splitter"></div>
+
+        <!-- RIGHT PANE: VIRTUAL PCB -->
+        <div class="pcb-pane">
+            <div class="pcb-board">
+                <div class="pcb-label-main">Z80 TRAINER KIT V1.0</div>
+
+                <!-- Row 1: Displays -->
+                <div class="component-row">
+                    <!-- 8-LEDs -->
+                    <div class="component" style="grid-column: span 1;">
+                        <div class="comp-label">LED Indicator (Port: 0x00)</div>
+                        <div class="led-array" id="comp-leds">
+                            <!-- JS Generated -->
+                        </div>
+                    </div>
+
+                    <!-- 7-Segment -->
+                    <div class="component" style="grid-column: span 2;">
+                        <div class="comp-label">7-Segment Display (Port: 0x10-0x17)</div>
+                        <div class="seven-seg-wrapper" id="comp-7seg">
+                            <!-- JS Generated -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Row 2: LCD & Piezo -->
+                <div class="component-row">
+                    <!-- LCD -->
+                    <div class="component" style="grid-column: span 2;">
+                        <div class="comp-label">LCD 16x2 (Port: 0x20 Cmd, 0x21 Data)</div>
+                        <div class="lcd-screen" id="comp-lcd">
+                            <div class="lcd-line" id="lcd-l1"></div>
+                            <div class="lcd-line" id="lcd-l2"></div>
+                        </div>
+                    </div>
+                    <!-- Piezo -->
+                    <div class="component">
+                        <div class="comp-label">Piezo (Port: 0x30)</div>
+                        <div class="piezo-hole" id="comp-buzzer"></div>
+                    </div>
+                </div>
+
+                <!-- Row 3: Matrix & Keypad -->
+                <div class="component-row">
+                    <!-- LED Matrix -->
+                    <div class="component">
+                        <div class="comp-label">Dot Matrix (Port: 0x80-0x9F)</div>
+                        <div class="matrix-grid" id="comp-matrix">
+                            <!-- JS Generated -->
+                        </div>
+                    </div>
+                    <!-- Keypad -->
+                    <div class="component">
+                        <div class="comp-label">Keypad (Port: 0x40)</div>
+                        <div class="keypad-grid" id="comp-keypad">
+                            <!-- JS Generated -->
+                        </div>
+                    </div>
+
+                    <!-- Decorative Logic (Internal) -->
+                    <div class="component" style="display: flex; flex-direction: column; background: rgba(0,20,0,0.2);">
+                        <div class="comp-label">Atmosphere Parts</div>
+
+                        <div class="deco-board-aligned">
+                            <!-- Block 1: Power/Filter Array (Dense Caps) -->
+                            <div class="deco-block">
+                                <div class="comp-label-small">C1-C3</div>
+                                <div class="deco-array-h" style="margin-top: 10px;">
+                                    <div class="deco-cap-wrapper">
+                                        <div class="deco-pad"></div>
+                                        <div class="deco-elec"></div>
+                                        <div class="deco-pad"></div>
+                                    </div>
+                                    <div class="deco-cap-wrapper">
+                                        <div class="deco-pad"></div>
+                                        <div class="deco-elec"></div>
+                                        <div class="deco-pad"></div>
+                                    </div>
+                                    <div class="deco-cap-wrapper">
+                                        <div class="deco-pad"></div>
+                                        <div class="deco-elec"></div>
+                                        <div class="deco-pad"></div>
+                                    </div>
+                                </div>
+                                <div class="comp-label-small" style="margin-top: 27px;">C4-C6</div>
+                                <div class="deco-array-h" style="margin-top: 5px;">
+                                    <div class="deco-cap-wrapper">
+                                        <div class="deco-pad"></div>
+                                        <div class="deco-cap"></div>
+                                        <div class="deco-pad"></div>
+                                    </div>
+                                    <div class="deco-cap-wrapper">
+                                        <div class="deco-pad"></div>
+                                        <div class="deco-cap"></div>
+                                        <div class="deco-pad"></div>
+                                    </div>
+                                    <div class="deco-cap-wrapper">
+                                        <div class="deco-pad"></div>
+                                        <div class="deco-cap"></div>
+                                        <div class="deco-pad"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Block 2: Bus Array (Dense Resistors) -->
+                            <div class="deco-block">
+                                <div class="comp-label-small">R1-R4</div>
+                                <div class="deco-array-h">
+                                    <div class="deco-res-wrapper v-mount">
+                                        <div class="deco-pad"></div>
+                                        <div class="deco-resistor v-mount"></div>
+                                        <div class="deco-pad"></div>
+                                    </div>
+                                    <div class="deco-res-wrapper v-mount">
+                                        <div class="deco-pad"></div>
+                                        <div class="deco-resistor v-mount"></div>
+                                        <div class="deco-pad"></div>
+                                    </div>
+                                    <div class="deco-res-wrapper v-mount">
+                                        <div class="deco-pad"></div>
+                                        <div class="deco-resistor v-mount"></div>
+                                        <div class="deco-pad"></div>
+                                    </div>
+                                    <div class="deco-res-wrapper v-mount">
+                                        <div class="deco-pad"></div>
+                                        <div class="deco-resistor v-mount"></div>
+                                        <div class="deco-pad"></div>
+                                    </div>
+                                </div>
+                                <div class="comp-label-small" style="margin-top: 5px;">R5-R8</div>
+                                <div class="deco-array-h">
+                                    <div class="deco-res-wrapper v-mount">
+                                        <div class="deco-pad"></div>
+                                        <div class="deco-resistor v-mount alt"></div>
+                                        <div class="deco-pad"></div>
+                                    </div>
+                                    <div class="deco-res-wrapper v-mount">
+                                        <div class="deco-pad"></div>
+                                        <div class="deco-resistor v-mount alt"></div>
+                                        <div class="deco-pad"></div>
+                                    </div>
+                                    <div class="deco-res-wrapper v-mount">
+                                        <div class="deco-pad"></div>
+                                        <div class="deco-resistor v-mount alt"></div>
+                                        <div class="deco-pad"></div>
+                                    </div>
+                                    <div class="deco-res-wrapper v-mount">
+                                        <div class="deco-pad"></div>
+                                        <div class="deco-resistor v-mount alt"></div>
+                                        <div class="deco-pad"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Block 3: Logic -->
+                            <div class="deco-block-v">
+                                <div class="deco-ic medium" style="margin-bottom: 15px;">74HC595</div>
+                                <div class="deco-ic large" style="margin-bottom: 15px;">ATP3012F6-PU</div>
+                                <div class="deco-ic medium">TC4511BP</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Row 4: DIP Switches -->
+                <div class="component-row">
+                    <div class="component" style="grid-column: span 3;">
+                        <div class="comp-label">DIP Switches (Port: 0x50-0x57)</div>
+                        <div class="dip-container" id="comp-dips">
+                            <!-- JS Generated -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Row 5: Interrupt Buttons -->
+                <div class="component-row">
+                    <div class="component" style="grid-column: span 3;">
+                        <div class="comp-label">Interrupt Buttons (Port: 0x60, Trigger INT)</div>
+                        <div class="btn-container" id="comp-int-btns">
+                            <!-- JS Generated -->
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+</body>
+
+</html>

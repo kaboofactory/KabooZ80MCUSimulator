@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Z80 Simulator Help / マニュアル</title>
+    <style>
+        body {
+            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 900px;
+            margin: 0 auto;
+            background: #eaedf0;
+            color: #333;
+        }
+
+        h1,
+        h2,
+        h3 {
+            color: #2c3e50;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 10px;
+            margin-top: 40px;
+        }
+
+        h1 {
+            text-align: center;
+            border: none;
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            font-weight: normal;
+            margin-bottom: 40px;
+        }
+
+        section {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+            font-size: 0.9em;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 12px 15px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            color: #333;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        code {
+            background: #f0f0f0;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: Consolas, monospace;
+            color: #d63384;
+            font-size: 1.1em;
+        }
+
+        pre {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: Consolas, monospace;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+            margin-right: 5px;
+        }
+
+        .badge-out {
+            background: #e74c3c;
+        }
+
+        /* Output */
+        .badge-in {
+            background: #27ae60;
+        }
+
+        /* Input */
+
+        .ja {
+            color: #666;
+            font-size: 0.9em;
+            display: block;
+            margin-top: 4px;
+        }
+
+        .note {
+            color: #c0392b;
+            font-weight: bold;
+            font-size: 0.85em;
+        }
+
+        /* Visuals */
+        .seg-diagram {
+            position: relative;
+            width: 100px;
+            height: 160px;
+            margin: 20px auto;
+            background: #222;
+            border-radius: 5px;
+        }
+
+        .s-bar {
+            position: absolute;
+            background: #555;
+            border-radius: 2px;
+            text-align: center;
+            line-height: 10px;
+            color: #fff;
+            font-size: 10px;
+        }
+
+        .s-bar.h {
+            width: 60px;
+            height: 10px;
+            left: 20px;
+        }
+
+        .s-bar.v {
+            width: 10px;
+            height: 60px;
+        }
+
+        .s-a {
+            top: 10px;
+        }
+
+        .s-b {
+            top: 20px;
+            right: 10px;
+        }
+
+        .s-c {
+            bottom: 20px;
+            right: 10px;
+        }
+
+        .s-d {
+            bottom: 10px;
+        }
+
+        .s-e {
+            bottom: 20px;
+            left: 10px;
+        }
+
+        .s-f {
+            top: 20px;
+            left: 10px;
+        }
+
+        .s-g {
+            top: 75px;
+        }
+
+        .s-dp {
+            bottom: 0;
+            right: 0;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .memory-map {
+            display: grid;
+            grid-template-columns: 80px 1fr 1fr;
+            gap: 1px;
+            background: #ddd;
+            border: 1px solid #ddd;
+        }
+
+        .memory-map div {
+            background: #fff;
+            padding: 8px;
+            text-align: center;
+            font-size: 0.85em;
+        }
+
+        .mm-head {
+            background: #f0f0f0 !important;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Z80 Simulator User Manual</h1>
+    <div class="subtitle">Z80 Microcomputer Learning Kit</div>
+
+    <section>
+        <h2>1. Introduction / はじめに</h2>
+        <p>
+            This is a browser-based Z80 microcontroller learning kit. No installation is required; you can learn
+            assembly programming and hardware control directly in your browser.
+            <span class="ja">このシミュレータは、Webブラウザ上で動作するZ80マイコン学習キットです。インストール不要で、アセンブリ言語のプログラミングとハードウェア制御を学ぶことができます。</span>
+        </p>
+    </section>
+
+    <section>
+        <h2>2. I/O Port Map / ポートマップ一覧</h2>
+        <p>
+            The Z80 CPU communicates with peripherals by specifying port addresses.
+            <span class="ja">Z80 CPUは、アドレスを指定して周辺機器とデータのやり取りを行います。</span>
+        </p>
+
+        <table>
+            <tr>
+                <th>Port (Hex)</th>
+                <th>I/O</th>
+                <th>Device</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td><code>00</code></td>
+                <td><span class="badge badge-out">OUT</span></td>
+                <td>8-LED Indicator</td>
+                <td>
+                    8 Red LEDs. Bit 1 = ON, 0 = OFF.
+                    <span class="ja">8個の赤色LED。ビット1で点灯、0で消灯。</span>
+                    <br>Example: <code>LD A, 0xFF</code> -> <code>OUT (0), A</code>
+                </td>
+            </tr>
+            <tr>
+                <td><code>10</code> - <code>17</code></td>
+                <td><span class="badge badge-out">OUT</span></td>
+                <td>7-Segment LED</td>
+                <td>
+                    8-digit 7-seg display. Port 10 is rightmost.
+                    <span class="ja">8桁の7セグメントLED。Port 10が右端、17が左端。</span>
+                </td>
+            </tr>
+            <tr>
+                <td><code>20</code> - <code>21</code></td>
+                <td><span class="badge badge-out">OUT</span></td>
+                <td>LCD (SC1602)</td>
+                <td>
+                    20: Command, 21: Data. Compatible with SC1602.
+                    <span class="ja">20:コマンド, 21:データ。SC1602互換。</span>
+                </td>
+            </tr>
+            <tr>
+                <td><code>30</code></td>
+                <td><span class="badge badge-out">OUT</span></td>
+                <td>Piezo Buzzer</td>
+                <td>
+                    Bit 0 = 1 (ON), 0 (OFF). 2kHz Square Wave.
+                    <span class="ja">Bit 0 が1でオン、0でオフ (2kHz矩形波)。</span>
+                </td>
+            </tr>
+            <tr>
+                <td><code>40</code></td>
+                <td><span class="badge badge-in">IN</span></td>
+                <td>Keypad (4x4)</td>
+                <td>
+                    Returns key index (1-16) or 0xFF if released.
+                    <span class="ja">押されたキー番号(1-16)を返す。なし=0xFF。</span>
+                </td>
+            </tr>
+            <tr>
+                <td><code>50</code> - <code>57</code></td>
+                <td><span class="badge badge-in">IN</span></td>
+                <td>DIP Switch</td>
+                <td>
+                    Returns 1 (ON) or 0 (OFF) for each switch.
+                    <span class="ja">各スイッチの状態を返す (1:ON, 0:OFF)。</span>
+                </td>
+            </tr>
+            <tr>
+                <td><code>60</code></td>
+                <td><span class="badge badge-in">IN</span></td>
+                <td>Interrupt Buttons</td>
+                <td>
+                    Bitmask of pressed buttons. Triggers INT on press.
+                    <span class="ja">押されたボタンのビットマスク。押すとINT割り込みが発生。</span>
+                </td>
+            </tr>
+            <tr>
+                <td><code>70</code> - <code>75</code></td>
+                <td><span class="badge badge-in">IN</span></td>
+                <td>RTC (Clock)</td>
+                <td>
+                    70:Sec, 71:Min, 72:Hour, 73:Day, 74:Mon, 75:Year (BCD).
+                    <span class="ja">現在時刻 (BCD形式)。秒, 分, 時, 日, 月, 年 の順。</span>
+                </td>
+            </tr>
+            <tr>
+                <td><code>80</code> - <code>9F</code></td>
+                <td><span class="badge badge-out">OUT</span></td>
+                <td>Dot Matrix</td>
+                <td>
+                    16x16 LED Grid. Rows 0-15.
+                    <span class="ja">16x16 LEDマトリクス。詳細は下図参照。</span>
+                </td>
+            </tr>
+        </table>
+    </section>
+
+    <section>
+        <h2>3. 7-Segment LED Details / 7セグメント詳細</h2>
+        <p>
+            Each segment corresponds to a bit in a byte. To display a number, set the bits for the logical segments to
+            1.
+            <span class="ja">各セグメントは、1バイトの各ビットに対応しています。数値を表示するには、点灯させたいセグメントのビットを1にします。</span>
+        </p>
+
+        <div style="display:flex; align-items:center; gap:40px; justify-content:center;">
+            <div class="seg-diagram">
+                <div class="s-bar h s-a">a (bit0)</div>
+                <div class="s-bar v s-f">f (bit5)</div>
+                <div class="s-bar v s-b">b (bit1)</div>
+                <div class="s-bar h s-g">g (bit6)</div>
+                <div class="s-bar v s-e">e (bit4)</div>
+                <div class="s-bar v s-c">c (bit2)</div>
+                <div class="s-bar h s-d">d (bit3)</div>
+                <div class="s-bar s-dp">dp(7)</div>
+            </div>
+            <div>
+                <ul>
+                    <li>Bit 0: <b>a</b> (Top)</li>
+                    <li>Bit 1: <b>b</b> (Top Right)</li>
+                    <li>Bit 2: <b>c</b> (Bottom Right)</li>
+                    <li>Bit 3: <b>d</b> (Bottom)</li>
+                    <li>Bit 4: <b>e</b> (Bottom Left)</li>
+                    <li>Bit 5: <b>f</b> (Top Left)</li>
+                    <li>Bit 6: <b>g</b> (Middle)</li>
+                    <li>Bit 7: <b>dp</b> (Dot)</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <h2>4. Dot Matrix Map / マトリクスLED構成</h2>
+        <p>
+            The matrix is a 16x16 LED grid. You write data to specific ports to light up dots on each row.
+            <span class="ja">16x16のLEDドットマトリクスです。各行(Row)に対応するポートにデータを書き込むことで点灯します。</span>
+        </p>
+        <div class="memory-map">
+            <div class="mm-head">Row (行)</div>
+            <div class="mm-head">Left 8 Dots (Port N)</div>
+            <div class="mm-head">Right 8 Dots (Port N+1)</div>
+
+            <div>0 (Top)</div>
+            <div>0x80 (Bit0=Leftmost)</div>
+            <div>0x81</div>
+
+            <div>1</div>
+            <div>0x82</div>
+            <div>0x83</div>
+
+            <div>:</div>
+            <div>:</div>
+            <div>:</div>
+
+            <div>15 (Bottom)</div>
+            <div>0x9E</div>
+            <div>0x9F</div>
+        </div>
+        <p>
+            Example: Light up top-left corner.
+            <span class="ja">例: 左上隅(Row 0, Bit 0)を点灯させる。</span><br>
+            <code>LD A, 1</code> -> <code>OUT (0x80), A</code>
+        </p>
+    </section>
+
+    <section>
+        <h2>5. LCD Reference / 液晶制御</h2>
+        <p>
+            SC1602 compatible text LCD. Control via Command and Data ports.
+            <span class="ja">SC1602互換のテキストLCDです。コマンドポートとデータポートで制御します。</span>
+        </p>
+        <ul>
+            <li><b>Command Port (0x20)</b>:
+                <ul>
+                    <li><code>0x01</code>: Clear Display</li>
+                    <li><code>0x80 + addr</code>: Set Cursor Position (Line 1: 00-0F, Line 2: 40-4F)</li>
+                </ul>
+            </li>
+            <li><b>Data Port (0x21)</b>: Send ASCII character code. <span class="ja">ASCII文字コードを送信します。</span></li>
+        </ul>
+
+        <h3>Example: Hello World</h3>
+        <pre>
+LD A, 0x01      ; Clear Screen
+OUT (0x20), A
+
+LD A, 0x48      ; 'H'
+OUT (0x21), A
+LD A, 0x65      ; 'e'
+OUT (0x21), A
+LD A, 0x6C      ; 'l'
+OUT (0x21), A
+LD A, 0x6C      ; 'l'
+OUT (0x21), A
+LD A, 0x6F      ; 'o'
+OUT (0x21), A
+    </pre>
+    </section>
+
+    <section>
+        <h2>6. Z80 Architecture & Instructions / アーキテクチャと命令</h2>
+
+        <h3>6.1 Registers / レジスタ</h3>
+        <p>
+            The simulator implements the full set of Z80 registers, including main, shadow, and index registers.
+            <span class="ja">本シミュレータは、メインレジスタ、裏レジスタ、インデックスレジスタを含むZ80の全レジスタを実装しています。</span>
+        </p>
+
+        <h4>Main Registers (Main Set) / メインレジスタ</h4>
+        <ul>
+            <li><code>A</code> (Accumulator): 8-bit math/logic operations. <span class="ja">演算の中心となる8ビットレジスタ。</span>
+            </li>
+            <li><code>F</code> (Flags): Status flags (S, Z, H, P/V, N, C). <span
+                    class="ja">演算結果の状態（ゼロ、負、キャリー等）を保持。</span></li>
+            <li><code>B, C, D, E, H, L</code>: General purpose 8-bit registers. <span class="ja">汎用8ビットレジスタ。</span></li>
+            <li><code>HL</code>: 16-bit accumulator / memory pointer. <span
+                    class="ja">16ビット演算やメモリアドレスへのポインタとして多用。</span></li>
+            <li><code>BC, DE</code>: Used as 16-bit counters or pointers. <span class="ja">16ビット数やポインタとして使用可能。</span>
+            </li>
+        </ul>
+
+        <h4>Shadow Registers (Alternate Set) / 裏レジスタ</h4>
+        <p>
+            The Z80 has a shadow set of registers: <code>A', F', B', C', D', E', H', L'</code>.
+            These are separate from the main set and are used for fast context switching (e.g., during interrupts).
+            <span class="ja">メインレジスタとは別に、同等の「裏レジスタ」(A'～L')が存在します。これらは独立しており、割り込み処理時の高速なコンテキスト切り替えなどに利用されます。</span>
+        </p>
+        <ul>
+            <li><code>EX AF, AF'</code>: Swaps A and F with A' and F'. <span class="ja">A/FとA'/F'の内容を入れ替えます。</span></li>
+            <li><code>EXX</code>: Swaps BC, DE, HL with BC', DE', HL'. <span
+                    class="ja">BC/DE/HLとBC'/DE'/HL'の内容を入れ替えます。</span></li>
+        </ul>
+
+        <h4>Index & Special Registers / インデックス・特殊レジスタ</h4>
+        <ul>
+            <li><code>IX, IY</code>: 16-bit Index Registers. Used for <code>(IX+d)</code> addressing. <span
+                    class="ja">インデックスレジスタ。オフセット付きメモリアクセス(IX+d)に使用。</span></li>
+            <li><code>PC</code> (Program Counter): Address of next instruction. <span class="ja">次に実行する命令のアドレス。</span>
+            </li>
+            <li><code>SP</code> (Stack Pointer): Current stack top address. <span class="ja">現在のスタックの先頭アドレス。</span></li>
+            <li><code>I, R</code>: Interrupt Vector / Refresh (Partially functional). <span class="ja">割り込みベクタ /
+                    リフレッシュ（一部機能のみ）。</span></li>
+        </ul>
+
+        <h3>6.2 Instruction Set Summary / 命令セット概要</h3>
+        <p>
+            This section provides a summary. For the complete, detailed specification including flags and opcodes,
+            please refer to the <a href="instruction_set.html" target="_blank">Full Instruction Set Reference /
+                詳細命令セット表</a>.
+            <br>
+            <span class="ja">本セクションは概要です。フラグ変化やオペコードを含む完全な仕様については、<a href="instruction_set.html"
+                    target="_blank">詳細命令セット表</a>を参照してください。</span>
+        </p>
+
+        <table>
+            <tr>
+                <th>Type</th>
+                <th>Mnemonic</th>
+                <th>Operands</th>
+                <th>Description & Constraints</th>
+            </tr>
+            <!-- 8-bit Load -->
+            <tr>
+                <td rowspan="2">Load (8-bit)</td>
+                <td><code>LD</code></td>
+                <td>r, n / r, r'</td>
+                <td>
+                    Load immediate <code>n</code> or register <code>r'</code> into <code>r</code>.<br>
+                    <span class="ja">即値nまたはレジスタr'の値をrに転送する。</span>
+                </td>
+            </tr>
+            <tr>
+                <td><code>LD</code></td>
+                <td>(HL)/(IX+d), n</td>
+                <td>
+                    Store <code>n</code> to memory at address HL or IX+d.<br>
+                    <span class="ja">HLまたはIX+dが指すメモリ番地に値nを書き込む。</span>
+                </td>
+            </tr>
+            <!-- 16-bit Load -->
+            <tr>
+                <td rowspan="2">Load (16-bit)</td>
+                <td><code>LD</code></td>
+                <td>dd, nn</td>
+                <td>
+                    Load 16-bit immediate <code>nn</code> into BC, DE, HL, SP, IX, IY.<br>
+                    <span class="ja">16ビット値nnをペアレジスタ等にロードする。</span>
+                </td>
+            </tr>
+            <tr>
+                <td><code>PUSH/POP</code></td>
+                <td>qq / IX / IY</td>
+                <td>
+                    Push/Pop register pair (AF, BC, DE, HL, IX, IY) to/from Stack.<br>
+                    <span class="ja">レジスタペアの内容をスタックに退避・復帰する。</span>
+                </td>
+            </tr>
+            <!-- Exchange -->
+            <tr>
+                <td>Exchange</td>
+                <td><code>EX / EXX</code></td>
+                <td>-</td>
+                <td>
+                    <code>EX DE,HL</code>: Swap DE/HL.<br>
+                    <code>EX AF,AF'</code>: Swap Main/Shadow A/F.<br>
+                    <code>EXX</code>: Swap Main/Shadow BC, DE, HL.<br>
+                    <code>EX (SP), HL/IX/IY</code>: Swap Top of Stack with Reg.<br>
+                    <span class="ja">各種レジスタ交換命令。裏レジスタやスタックとの交換を行う。</span>
+                </td>
+            </tr>
+            <!-- Block Ops -->
+            <tr>
+                <td>Block Ops</td>
+                <td><code>LDI/DIR/LDD/DR</code><br><code>CPI/PIR/CPD/DR</code></td>
+                <td>-</td>
+                <td>
+                    Block Transfer (LD) or Compare (CP).<br>
+                    Suffix IR/DR performs atomic loop until BC=0 or match found.<br>
+                    <span class="ja">ブロック転送・検索。IR/DR系の命令は完了するまでアトミックに実行される。</span>
+                </td>
+            </tr>
+            <!-- Arithmetic 8-bit -->
+            <tr>
+                <td rowspan="3">Arithmetic / Logic</td>
+                <td><code>ADD/ADC/SUB/SBC</code><br><code>AND/OR/XOR/CP</code></td>
+                <td>A, src</td>
+                <td>
+                    Standard 8-bit ALU operations. result -> A, flags updated.<br>
+                    <code>src</code> can be r, n, (HL), or (IX+d).<br>
+                    <span class="ja">8ビット演算。結果はAに入り、フラグが更新される。</span>
+                </td>
+            </tr>
+            <tr>
+                <td><code>INC / DEC</code></td>
+                <td>r / (HL) / (IX+d)</td>
+                <td>
+                    Increment/Decrement value. Affects Z, S, P/V, H flags (Not C).<br>
+                    <span class="ja">値を+1/-1する。キャリー以外のフラグが変化する。</span>
+                </td>
+            </tr>
+            <tr>
+                <td><code>NEG / CPL</code></td>
+                <td>-</td>
+                <td>
+                    <code>NEG</code>: A = 0 - A (Negate). <code>CPL</code>: A = ~A (Invert).<br>
+                    <span class="ja">NEGは2の補数(符号反転)、CPLは1の補数(ビット反転)を取る。</span>
+                </td>
+            </tr>
+            <!-- Arithmetic 16-bit -->
+            <tr>
+                <td>16-bit Arith</td>
+                <td><code>ADD / ADC / SBC</code></td>
+                <td>HL/IX/IY, dd</td>
+                <td>
+                    16-bit addition/subtraction. Dest is HL, IX, or IY.<br>
+                    <span class="ja">16ビット加算・減算。転送先はHL/IX/IY。</span>
+                </td>
+            </tr>
+            <!-- Jumps -->
+            <tr>
+                <td rowspan="4">Control Flow</td>
+                <td><code>JP</code></td>
+                <td>nn / cc, nn / (HL)</td>
+                <td>
+                    Jump absolute. <code>JP (HL/IX/IY)</code> jumps to address in reg.<br>
+                    <span class="ja">絶対アドレスへジャンプ。レジスタ間接ジャンプも可能。</span>
+                </td>
+            </tr>
+            <tr>
+                <td><code>JR</code></td>
+                <td>e / cc, e</td>
+                <td>
+                    Jump Relative. Range: -128 to +127 bytes.<br>
+                    <span class="ja">相対ジャンプ。現在地から±128バイトの範囲。</span>
+                </td>
+            </tr>
+            <tr>
+                <td><code>CALL / RET</code></td>
+                <td>(cc)</td>
+                <td>
+                    Subroutine Call/Return. Supports conditions (C, NC, Z, NZ, etc).<br>
+                    <span class="ja">サブルーチン呼出し・復帰。条件付き実行が可能。</span>
+                </td>
+            </tr>
+            <tr>
+                <td><code>DJNZ</code></td>
+                <td>e</td>
+                <td>
+                    Dec B; Jump Relative if B!=0. Loop primitive.<br>
+                    <span class="ja">Bを減算し0でなければジャンプ。ループ用。</span>
+                </td>
+            </tr>
+            <!-- I/O -->
+            <tr>
+                <td>I/O</td>
+                <td><code>IN / OUT</code></td>
+                <td>port</td>
+                <td>
+                    <code>IN A,(n)</code> / <code>OUT (n),A</code>: Fixed port.<br>
+                    <code>IN r,(C)</code> / <code>OUT (C),r</code>: Port specified by C reg.<br>
+                    <span class="ja">固定ポート、またはCレジスタ指定ポートでの入出力。</span>
+                </td>
+            </tr>
+            <!-- Control -->
+            <tr>
+                <td>System</td>
+                <td><code>EI / DI / IM</code><br><code>HALT / NOP</code></td>
+                <td>-</td>
+                <td>
+                    Interrupt control and Halt.<br>
+                    <span class="ja">割り込み許可/禁止、モード設定、停止など。</span>
+                </td>
+            </tr>
+        </table>
+    </section>
+
+    <section>
+        <h2>7. Unimplemented Instructions / 未実装命令</h2>
+        <p>
+            The simulator is highly complete, but the following are currently unsupported:
+            <span class="ja">本シミュレータは高い網羅性を持っていますが、以下は未対応です。</span>
+        </p>
+        <ul>
+            <li><strong>Interrupt Modes / 割り込みモード:</strong> Only <code>IM 1</code> is fully supported. <code>IM 0</code>
+                and <code>IM 2</code> are not implemented. <span class="ja">IM 1のみ対応しています。IM 0, IM 2は未実装です。</span></li>
+            <li><strong>Undocumented Opcodes / 非公式命令:</strong> <code>SLL</code> (Shift Left Logical) is not supported.
+                <span class="ja">SLL命令は未対応です。</span>
+            </li>
+            <li><strong>R register / Rレジスタ詳細:</strong> Memory refresh counter logic is simulated simply (not
+                cycle-accurate). <span class="ja">メモリリフレッシュカウンタは簡易実装です。</span></li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>8. Disclaimer / 免責事項</h2>
+        <p>
+            This software is provided "as is" without warranty of any kind.
+            <br>
+            <span class="ja">本ソフトウェアは教育目的で作成されています。本ソフトウェアの動作保証は行いません。また、利用により生じた損害について作者は責任を負いません。</span>
+        </p>
+    </section>
+
+</body>
+
+</html>
