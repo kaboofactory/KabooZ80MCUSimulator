@@ -285,8 +285,8 @@
                 <td><span class="badge badge-in">IN</span></td>
                 <td>Keypad (4x4)</td>
                 <td>
-                    Returns key index (1-16) or 0xFF if released.
-                    <span class="ja">押されたキー番号(1-16)を返す。なし=0xFF。</span>
+                    Returns key index (1-16) or 0xFF if released. Interrupt on press.
+                    <span class="ja">押されたキー番号(1-16)を返す。なし=0xFF。押すとINT割り込み発生。</span>
                 </td>
             </tr>
             <tr>
